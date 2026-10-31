@@ -1,0 +1,72 @@
+# The Wolf Among Us Remastered - Ultrawide Fix
+
+An executable patch that removes the game's forced 16:9 rendering restriction and exposes the resolutions reported by your display, including **3440 x 1440**.
+
+## What it changes
+
+- Bypasses the hardcoded resolution whitelist in the graphics menu.
+- Disables the scripted forced 16:9 render target.
+- Uses the actual screen width-to-height ratio for the aspect ratio.
+
+The patcher backs up the executable before changing it. It does not modify saved preferences or save games. Select your resolution through the game's graphics menu after installing.
+
+## Requirements
+
+- Windows and an existing installation of The Wolf Among Us Remastered.
+- Python 3.9 or newer. No third-party Python packages are required.
+- The exact supported executable build (identified by SHA-256 below).
+
+## Install
+
+Close the game. Download or clone this repository, open a terminal in its folder, and replace `C:\Games\The Wolf Among Us Remastered` in these commands with your installation folder.
+
+Check compatibility without changing files:
+
+```powershell
+py ultrawide.py "C:\Games\The Wolf Among Us Remastered" --dry-run
+```
+
+Apply the patch:
+
+```powershell
+py ultrawide.py "C:\Games\The Wolf Among Us Remastered"
+```
+
+Start the game normally. Open **Settings > Graphics**, select **3440 x 1440** (or your display's native resolution), and apply it. The display must report the resolution for it to appear in the menu.
+
+If your Python command is `python` instead of `py`, use `python` in the commands above. Your account needs write access to the game folder.
+
+## Uninstall
+
+Close the game, then run:
+
+```powershell
+py ultrawide.py "C:\Games\The Wolf Among Us Remastered" --restore
+```
+
+The original executable is restored from `.ultrawide-backup` inside the game folder. Keep that folder if you want to uninstall using this command. Display settings remain as you selected them.
+
+## Compatibility and verification
+
+Only the following executable is supported:
+
+| Executable state | SHA-256 |
+| --- | --- |
+| Original | `e8cedcf34066760e480689d44964dc5596f5585c77a19a2627786a8163a65616` |
+| Patched | `5a577f5c435fba7a0c98546b4ac67277f0268956274d2ce98a141a0075cd108c` |
+
+The patcher verifies the complete executable hash, the bytes at every patch location, the resulting hash, and its backup. Running it again on the patched executable makes no further changes. Unknown or updated executables are refused.
+
+The game reached the title screen at 3440 x 1440 during local testing. Gameplay, cutscenes, and other aspect ratios have not been fully verified. The patcher's apply/restore behavior was also checked against a disposable copy of the supported executable.
+
+Steam updates or **Verify integrity of game files** may replace the patched executable. An updated build must be inspected before it can be supported; do not reuse these offsets blindly.
+
+## Patch details
+
+| File offset | Original bytes | Patched bytes | Purpose |
+| --- | --- | --- | --- |
+| `0x81721E` | `72 0D` | `EB 0D` | Accept display modes without the fixed whitelist. |
+| `0x818485` | `B1 01` | `31 C9` | Disable the forced aspect render target. |
+| `0x81848C` | `F3 0F 10 05 A8 29 BE 00` | `E8 DF BA A9 FF 90 90 90` | Get the actual screen aspect ratio instead of loading 16:9. |
+
+This repository contains patch source and documentation only. Game executables, assets, personal settings, and backups are not included.
